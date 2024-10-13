@@ -1,5 +1,4 @@
-// static/js/search_sort.js
-
+// Existing search_sort.js content
 document.addEventListener('DOMContentLoaded', function() {
     initializeTable('songs-table');
     initializeTable('songs-table-all');
@@ -34,6 +33,8 @@ function initializeTable(tableId) {
                     }
                 }
             });
+
+            applyStriping(table);
         });
     }
     
@@ -89,6 +90,8 @@ function initializeTable(tableId) {
             sortedRows.forEach(function(row) {
                 tbody.appendChild(row);
             });
+
+            applyStriping(table);
         });
     });
 
@@ -130,6 +133,20 @@ function sortTableByMultipleColumns(tableRows, table, columns) {
     tbody.innerHTML = '';
     tableRows.forEach(function(row) {
         tbody.appendChild(row);
+    });
+
+    applyStriping(table);
+}
+
+function applyStriping(table) {
+    const visibleRows = Array.from(table.querySelectorAll('tbody tr')).filter(row => row.style.display !== 'none');
+    visibleRows.forEach((row, index) => {
+        row.classList.remove('bg-light', 'bg-white');
+        if (index % 2 === 0) {
+            row.classList.add('bg-light');
+        } else {
+            row.classList.add('bg-white');
+        }
     });
 }
 
