@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
 import pandas as pd
-from rapidfuzz import process
 from unicodedata import normalize
 from urllib.parse import unquote
 import html
@@ -70,14 +69,15 @@ def home():
         else:
             featuring = str(featuring).strip()
 
+        # Create a normalized search string
         search_terms = []
         for col in ['Main Artist', 'Song', 'Featuring', 'Key']:
             normalized_col = col + '_normalized'
             value = row.get(normalized_col, '')
-            if pd.notnull(value):
-                search_terms.append(str(value))
-            else:
-                search_terms.append('')
+            if isinstance(value, list):
+                # Join list items with space
+                value = ' '.join(value)
+            search_terms.append(str(value))
         search_string = ' '.join(search_terms)
         search_string = html.escape(search_string)
 
@@ -140,21 +140,60 @@ def category(category_name):
 @app.route('/category/<category_name>/<subcategory_value>')
 def subcategory(category_name, subcategory_value):
     category_name = category_name.strip()
-    subcategory_value = unquote(subcategory_value).lower().strip()
+    normalized_subcategory_value = unquote(subcategory_value).lower().strip()
+
+    original_subcategory = subcategory_value  # Default fallback
 
     if category_name == 'BPM':
-        bpm_range = int(subcategory_value)
+        try:
+            bpm_range = int(normalized_subcategory_value)
+        except ValueError:
+            return "Invalid BPM range.", 400
         filtered_df = df[df['BPM Range'] == bpm_range]
+        original_subcategory = f"{bpm_range}-{bpm_range + 9}"
     elif category_name == 'Year Released':
-        year_range = int(subcategory_value)
+        try:
+            year_range = int(normalized_subcategory_value)
+        except ValueError:
+            return "Invalid Year range.", 400
         filtered_df = df[df['Year Range'] == year_range]
+        original_subcategory = f"{year_range}-{year_range + 9}"
     elif category_name in ['Country', 'Language', 'Arrangement', 'Genre']:
-        filtered_df = df[df[category_name + '_normalized'].apply(lambda x: subcategory_value in x)]
+        # Find the original value from the dataframe
+        matched_rows = df[df[category_name + '_normalized'].apply(lambda x: normalized_subcategory_value in x)]
+        if not matched_rows.empty:
+            # Iterate through the rows to find the exact original subcategory
+            for _, row in matched_rows.iterrows():
+                original_values = row[category_name]
+                for orig_val in original_values:
+                    normalized_orig_val = normalize('NFKD', orig_val).encode('ascii', errors='ignore').decode('utf-8').lower()
+                    if normalized_orig_val == normalized_subcategory_value:
+                        original_subcategory = orig_val
+                        break
+                else:
+                    continue
+                break
+        else:
+            return f"No songs found for {category_name}: {subcategory_value.capitalize()}.", 404
     else:
-        filtered_df = df[df[category_name + '_normalized'] == subcategory_value]
+        matched_rows = df[df[category_name + '_normalized'] == normalized_subcategory_value]
+        if not matched_rows.empty:
+            original_subcategory = matched_rows.iloc[0][category_name]
+        else:
+            return f"No songs found for {category_name}: {subcategory_value}.", 404
 
     # Prepare songs data
     songs = []
+    filtered_df = df[df.apply(
+        lambda row: (
+            (category_name == 'BPM' and row['BPM Range'] == int(normalized_subcategory_value)) or
+            (category_name == 'Year Released' and row['Year Range'] == int(normalized_subcategory_value)) or
+            (category_name in ['Country', 'Language', 'Arrangement', 'Genre'] and normalized_subcategory_value in row[category_name + '_normalized']) or
+            (not category_name in ['BPM', 'Year Released', 'Country', 'Language', 'Arrangement', 'Genre'] and row[category_name + '_normalized'] == normalized_subcategory_value)
+        ),
+        axis=1
+    )]
+
     for _, row in filtered_df.iterrows():
         # Handle NaN in 'Featuring' field
         featuring = row['Featuring']
@@ -168,10 +207,10 @@ def subcategory(category_name, subcategory_value):
         for col in ['Main Artist', 'Song', 'Featuring', 'Key']:
             normalized_col = col + '_normalized'
             value = row.get(normalized_col, '')
-            if pd.notnull(value):
-                search_terms.append(str(value))
-            else:
-                search_terms.append('')
+            if isinstance(value, list):
+                # Join list items with space
+                value = ' '.join(value)
+            search_terms.append(str(value))
         search_string = ' '.join(search_terms)
         search_string = html.escape(search_string)
 
@@ -187,7 +226,10 @@ def subcategory(category_name, subcategory_value):
         }
         songs.append(song)
 
-    return render_template('songs.html', category=category_name, subcategory=subcategory_value, songs=songs)
+    if not songs:
+        return f"No songs found for {category_name}: {original_subcategory}.", 404
+
+    return render_template('songs.html', category=category_name, subcategory=original_subcategory, songs=songs)
 
 def apply_filters(df, filters):
     filtered_df = df.copy()
