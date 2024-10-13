@@ -1,0 +1,21 @@
+table th.sortable {
+    cursor: pointer;
+    position: relative;
+}
+
+table th.sortable.sorted::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: calc(50% - 5px);
+    border: 5px solid transparent;
+}
+
+table th.sortable.sorted[data-order="asc"]::after {
+    border-bottom-color: #000;
+}
+
+table th.sortable.sorted[data-order="desc"]::after {
+    border-top-color: #000;
+    top: calc(50% - 1px);
+}

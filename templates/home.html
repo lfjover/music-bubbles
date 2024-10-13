@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Select a Category</h1>
+    <div class="row mb-5">
+        {% for category in categories %}
+        <div class="col-md-3">
+            <a href="{{ url_for('category', category_name=category) }}" class="btn btn-primary btn-lg btn-block mb-3">{{ category }}</a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <h2 class="mb-4">All Songs</h2>
+    <input type="text" id="search-box-all" placeholder="Search..." class="form-control mb-3">
+    <table class="table table-striped" id="songs-table-all">
+        <thead>
+            <tr>
+                <th data-column="Main Artist" data-order="asc" class="sortable">Artist</th>
+                <th data-column="Song" data-order="asc" class="sortable">Song Title</th>
+                <th data-column="Duration" data-order="asc" class="sortable">Duration</th>
+                <th data-column="Year Released" data-order="asc" class="sortable">Year Released</th>
+                <th data-column="BPM" data-order="asc" class="sortable">BPM</th>
+                <th data-column="Key" data-order="asc" class="sortable">Key</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for song in songs %}
+            <tr data-search="{{ song['search_string'] }}">
+                <td data-column="Main Artist">{{ song['Main Artist'] }}</td>
+                <td data-column="Song">
+                    {{ song['Song'] }}
+                    {% if song['Featuring'] %}
+                        (ft. {{ song['Featuring'] }})
+                    {% endif %}
+                </td>
+                <td data-column="Duration">{{ song['Duration'] }}</td>
+                <td data-column="Year Released">{{ song['Year Released'] }}</td>
+                <td data-column="BPM">{{ song['BPM'] }}</td>
+                <td data-column="Key">{{ song['Key'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search_sort.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,16 @@
+<!-- templates/category.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Subcategories in {{ category }}</h1>
+    {% for normalized_value, original_value, count in values %}
+    <a href="{{ url_for('subcategory', category_name=category, subcategory_value=normalized_value) }}" class="btn btn-primary btn-lg mb-3 text-center">
+        {{ original_value }}
+        <br>
+        <small>{{ count }} song{% if count != 1 %}s{% endif %}</small>
+    </a>
+    {% endfor %}
+    <a href="{{ url_for('home') }}" class="btn btn-secondary btn-lg">Back to Home</a>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1>Filtered Songs</h1>
+    <input type="text" id="search-box" placeholder="Search..." class="form-control">
+    <table class="table table-striped" id="songs-table">
+        <thead>
+            <tr>
+                <th data-column="Main Artist">Artist</th>
+                <th data-column="Song">Song Title</th>
+                <th data-column="Featuring">Featuring</th>
+                <th data-column="Duration">Duration</th>
+                <th data-column="Year Released">Year Released</th>
+                <th data-column="BPM">BPM</th>
+                <th data-column="Key">Key</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for song in songs %}
+            <tr>
+                <td>{{ song['Main Artist'] }}</td>
+                <td>{{ song['Song'] }}</td>
+                <td>{{ song['Featuring'] }}</td>
+                <td>{{ song['Duration'] }}</td>
+                <td>{{ song['Year Released'] }}</td>
+                <td>{{ song['BPM'] }}</td>
+                <td>{{ song['Key'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script src="{{ url_for('static', filename='js/search_sort.js') }}"></script>
+{% endblock %}

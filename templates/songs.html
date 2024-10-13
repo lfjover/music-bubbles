@@ -1,0 +1,56 @@
+<!-- templates/songs.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Songs in {{ category }}: {{ subcategory }}</h1>
+    
+    <!-- Buttons at the Top -->
+    <div class="mb-3 text-center">
+        <a href="{{ url_for('category', category_name=category) }}" class="btn btn-primary mr-2">Back to Subcategories</a>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Categories</a>
+    </div>
+    
+    <input type="text" id="search-box" placeholder="Search..." class="form-control mb-3">
+    
+    <table class="table table-striped" id="songs-table">
+        <thead>
+            <tr>
+                <th data-column="Main Artist" data-order="asc" class="sortable">Artist</th>
+                <th data-column="Song" data-order="asc" class="sortable">Song Title</th>
+                <th data-column="Duration" data-order="asc" class="sortable">Duration</th>
+                <th data-column="Year Released" data-order="asc" class="sortable">Year Released</th>
+                <th data-column="BPM" data-order="asc" class="sortable">BPM</th>
+                <th data-column="Key" data-order="asc" class="sortable">Key</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for song in songs %}
+            <tr data-search="{{ song['search_string'] }}">
+                <td data-column="Main Artist">{{ song['Main Artist'] }}</td>
+                <td data-column="Song">
+                    {{ song['Song'] }}
+                    {% if song['Featuring'] %}
+                        (ft. {{ song['Featuring'] }})
+                    {% endif %}
+                </td>
+                <td data-column="Duration">{{ song['Duration'] }}</td>
+                <td data-column="Year Released">{{ song['Year Released']|int }}</td>
+                <td data-column="BPM">{{ song['BPM'] }}</td>
+                <td data-column="Key">{{ song['Key'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Buttons at the Bottom -->
+    <div class="mt-3 text-center">
+        <a href="{{ url_for('category', category_name=category) }}" class="btn btn-primary mr-2">Back to Subcategories</a>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Categories</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search_sort.js') }}"></script>
+{% endblock %}
