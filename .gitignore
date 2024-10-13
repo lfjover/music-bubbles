@@ -7,3 +7,11 @@ node_modules/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Optional: Ignore virtual environment directories
+venv/
+env/
