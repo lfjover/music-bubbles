@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeTable('songs-table');
     initializeTable('songs-table-all');
+    initializeTable('stats-table');
 });
 
 function initializeTable(tableId) {

@@ -1,0 +1,33 @@
+<!-- templates/stats_detail.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Top {{ category }}</h1>
+    
+    <table class="table table-striped" id="stats-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th data-column="{{ category }}" data-order="asc" class="sortable">{{ category }}</th>
+                <th data-column="Song" data-order="asc" class="sortable">Song Count</th>
+            </tr>
+        </thead>
+        <tbody>
+           {% for item in data %}
+           <tr data-search="{{ item[category] }}">
+               <td>{{ loop.index }}</td>
+               <td>{{ item[category] }}</td>
+               <td>{{ item['Song'] }}</td>
+           </tr>
+           {% endfor %}
+        </tbody>
+    </table>
+    
+    <a href="{{ url_for('stats') }}" class="btn btn-secondary">Back to Stats</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search_sort.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,30 @@
+<!-- templates/stats.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Statistics</h1>
+    
+    <div class="row">
+        {% for stat, items in stats.items() %}
+        <div class="col-md-6 mb-4">
+            <h3>
+                <a href="{{ url_for('stats_detail', stat_category=stat) }}">{{ stat }}</a>
+            </h3>
+            <ul class="list-group">
+                {% for item in items %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ loop.index }}. {{ item['Main Artist'] if stat == 'Artists' else item['Country'] if stat == 'Countries' else item['Language'] if stat == 'Languages' else item['Genre'] if stat == 'Genres' else item['Key'] if stat == 'Keys' else item['BPM'] if stat == 'BPMs' else item['BPM Range'] if stat == 'Bpm Ranges' else item['Year Released'] if stat == 'Years Released' else item['Year Range'] }}
+                    <span class="badge badge-primary badge-pill">{{ item['Song'] }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search_sort.js') }}"></script>
+{% endblock %}

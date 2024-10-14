@@ -19,3 +19,8 @@ table th.sortable.sorted[data-order="desc"]::after {
     border-top-color: #000;
     top: calc(50% - 1px);
 }
+
+/* Example: Style for the Stats page badges */
+.badge-pill {
+    font-size: 0.9em;
+}

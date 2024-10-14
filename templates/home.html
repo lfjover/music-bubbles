@@ -5,7 +5,11 @@
     <div class="row mb-5">
         {% for category in categories %}
         <div class="col-md-3">
+            {% if category == 'Stats' %}
+            <a href="{{ url_for('stats') }}" class="btn btn-warning btn-lg btn-block mb-3">{{ category }}</a>
+            {% else %}
             <a href="{{ url_for('category', category_name=category) }}" class="btn btn-primary btn-lg btn-block mb-3">{{ category }}</a>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

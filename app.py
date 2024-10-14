@@ -58,7 +58,7 @@ def test():
 
 @app.route('/')
 def home():
-    categories = ['Key', 'BPM', 'Genre', 'Language', 'Country', 'Year Released', 'Arrangement']
+    categories = ['Key', 'BPM', 'Genre', 'Language', 'Country', 'Year Released', 'Arrangement', 'Stats']
     
     # Prepare all songs data
     songs = []
@@ -230,6 +230,60 @@ def subcategory(category_name, subcategory_value):
         return f"No songs found for {category_name}: {original_subcategory}.", 404
 
     return render_template('songs.html', category=category_name, subcategory=original_subcategory, songs=songs)
+
+@app.route('/stats')
+def stats():
+    top_artists = df.groupby('Main Artist')['Song'].nunique().sort_values(ascending=False).head(25).reset_index()
+    top_countries = df.explode('Country').groupby('Country')['Song'].count().sort_values(ascending=False).head(25).reset_index()
+    top_genres = df.explode('Genre').groupby('Genre')['Song'].count().sort_values(ascending=False).head(25).reset_index()
+    top_keys = df.groupby('Key')['Song'].count().sort_values(ascending=False).head(25).reset_index()
+    top_bpms = df.groupby('BPM')['Song'].count().sort_values(ascending=False).head(25).reset_index()
+    top_bpm_ranges = df.groupby('BPM Range')['Song'].count().sort_values(ascending=False).head(25).reset_index()
+    top_years = df.groupby('Year Released')['Song'].count().sort_values(ascending=False).head(25).reset_index()
+    top_decades = df.groupby('Year Range')['Song'].count().sort_values(ascending=False).head(25).reset_index()
+    top_languages = df.explode('Language').groupby('Language')['Song'].count().sort_values(ascending=False).head(25).reset_index()
+
+    stats_data = {
+        'Artists': top_artists.to_dict('records'),
+        'Countries': top_countries.to_dict('records'),
+        'Genres': top_genres.to_dict('records'),
+        'Keys': top_keys.to_dict('records'),
+        'BPMs': top_bpms.to_dict('records'),
+        'BPM Ranges': top_bpm_ranges.to_dict('records'),
+        'Years Released': top_years.to_dict('records'),
+        'Decades': top_decades.to_dict('records'),
+        'Languages': top_languages.to_dict('records')
+    }
+
+    return render_template('stats.html', stats=stats_data)
+
+@app.route('/stats/<stat_category>')
+def stats_detail(stat_category):
+    stat_category = stat_category.replace('_', ' ').title()
+    if stat_category == 'Artists':
+        data = df.groupby('Main Artist')['Song'].nunique().sort_values(ascending=False).reset_index()
+    elif stat_category == 'Countries':
+        data = df.explode('Country').groupby('Country')['Song'].count().sort_values(ascending=False).reset_index()
+    elif stat_category == 'Languages':
+        data = df.explode('Language').groupby('Language')['Song'].count().sort_values(ascending=False).reset_index()
+    elif stat_category == 'Genres':
+        data = df.explode('Genre').groupby('Genre')['Song'].count().sort_values(ascending=False).reset_index()
+    elif stat_category == 'Keys':
+        data = df.groupby('Key')['Song'].count().sort_values(ascending=False).reset_index()
+    elif stat_category == 'Bpms':
+        data = df.groupby('BPM')['Song'].count().sort_values(ascending=False).reset_index()
+    elif stat_category == 'Bpm Ranges':
+        data = df.groupby('BPM Range')['Song'].count().sort_values(ascending=False).reset_index()
+    elif stat_category == 'Years Released':
+        data = df.groupby('Year Released')['Song'].count().sort_values(ascending=False).reset_index()
+    elif stat_category == 'Decades':
+        data = df.groupby('Year Range')['Song'].count().sort_values(ascending=False).reset_index()
+    else:
+        return "Invalid stat category.", 400
+
+    data = data.head(25).to_dict('records')
+
+    return render_template('stats_detail.html', category=stat_category, data=data)
 
 def apply_filters(df, filters):
     filtered_df = df.copy()
