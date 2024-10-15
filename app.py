@@ -253,7 +253,7 @@ def stats():
         'Keys': top_keys.to_dict('records'),
         'BPMs': top_bpms.to_dict('records'),
         'BPM Ranges': top_bpm_ranges.to_dict('records'),  # Now formatted as "90-99", etc.
-        'Years Released': top_years.to_dict('records'),
+        'Year Released': top_years.to_dict('records'),
         'Decades': top_decades.to_dict('records'),
         'Languages': top_languages.to_dict('records'),  # Moved 'Languages' here
     }
@@ -277,7 +277,7 @@ def stats_detail(stat_category):
         data = df.groupby('BPM')['Song'].count().sort_values(ascending=False).reset_index()
     elif stat_category == 'BPM Ranges':
         data = df.groupby('BPM Range')['Song'].count().sort_values(ascending=False).reset_index()
-    elif stat_category == 'Years Released':
+    elif stat_category == 'Year Released':
         data = df.groupby('Year Released')['Song'].count().sort_values(ascending=False).reset_index()
     elif stat_category == 'Decades':
         data = df.groupby('Year Range')['Song'].count().sort_values(ascending=False).reset_index()

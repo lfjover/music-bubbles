@@ -6,7 +6,7 @@
     <h1 class="mb-4">Statistics</h1>
     
     <div class="mb-3 text-center">
-    <a href="{{ url_for('home') }}" class="btn btn-secondary mb-4">Back Home</a>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary mb-4">Back Home</a>
     </div>
     
     <div class="row">
@@ -18,7 +18,28 @@
             <ul class="list-group">
                 {% for item in items %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ loop.index }}. {{ item['Main Artist'] if stat == 'Artists' else item['Country'] if stat == 'Countries' else item['Language'] if stat == 'Languages' else item['Genre'] if stat == 'Genres' else item['Key'] if stat == 'Keys' else item['BPM'] if stat == 'BPMs' else item['BPM Range'] if stat == 'BPM Ranges' else item['Year Released'] if stat == 'Years Released' else item['Year Range'] }}
+                    {{ loop.index }}. 
+                    {% if stat == 'Artists' %}
+                        {{ item['Main Artist'] }}
+                    {% elif stat == 'Countries' %}
+                        {{ item['Country'] }}
+                    {% elif stat == 'Languages' %}
+                        {{ item['Language'] }}
+                    {% elif stat == 'Genres' %}
+                        {{ item['Genre'] }}
+                    {% elif stat == 'Keys' %}
+                        {{ item['Key'] }}
+                    {% elif stat == 'BPMs' %}
+                        {{ item['BPM'] }}
+                    {% elif stat == 'BPM Ranges' %}
+                        {{ item['BPM Range'] }}
+                    {% elif stat == 'Year Released' %}
+                        {{ item['Year Released'] }}
+                    {% elif stat == 'Decades' %}
+                        {{ item['Year Range'] }}s
+                    {% else %}
+                        {{ item['Year Range'] }}
+                    {% endif %}
                     <span class="badge badge-primary badge-pill">{{ item['Song'] }}</span>
                 </li>
                 {% endfor %}
@@ -28,7 +49,7 @@
     </div>
     
     <div class="mb-3 text-center">
-    <a href="{{ url_for('home') }}" class="btn btn-secondary mb-4">Back Home</a>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary mb-4">Back Home</a>
     </div>
     
 </div>
