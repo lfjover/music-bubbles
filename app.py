@@ -243,16 +243,19 @@ def stats():
     top_decades = df.groupby('Year Range')['Song'].count().sort_values(ascending=False).head(25).reset_index()
     top_languages = df.explode('Language').groupby('Language')['Song'].count().sort_values(ascending=False).head(25).reset_index()
 
+    # Format BPM Range as "90-99", "100-109", etc.
+    top_bpm_ranges['BPM Range'] = top_bpm_ranges['BPM Range'].apply(lambda x: f"{x}-{x + 9}")
+
     stats_data = {
         'Artists': top_artists.to_dict('records'),
         'Countries': top_countries.to_dict('records'),
         'Genres': top_genres.to_dict('records'),
         'Keys': top_keys.to_dict('records'),
         'BPMs': top_bpms.to_dict('records'),
-        'BPM Ranges': top_bpm_ranges.to_dict('records'),
+        'BPM Ranges': top_bpm_ranges.to_dict('records'),  # Now formatted as "90-99", etc.
         'Years Released': top_years.to_dict('records'),
         'Decades': top_decades.to_dict('records'),
-        'Languages': top_languages.to_dict('records')
+        'Languages': top_languages.to_dict('records'),  # Moved 'Languages' here
     }
 
     return render_template('stats.html', stats=stats_data)
@@ -270,9 +273,9 @@ def stats_detail(stat_category):
         data = df.explode('Genre').groupby('Genre')['Song'].count().sort_values(ascending=False).reset_index()
     elif stat_category == 'Keys':
         data = df.groupby('Key')['Song'].count().sort_values(ascending=False).reset_index()
-    elif stat_category == 'Bpms':
+    elif stat_category == 'BPMs':
         data = df.groupby('BPM')['Song'].count().sort_values(ascending=False).reset_index()
-    elif stat_category == 'Bpm Ranges':
+    elif stat_category == 'BPM Ranges':
         data = df.groupby('BPM Range')['Song'].count().sort_values(ascending=False).reset_index()
     elif stat_category == 'Years Released':
         data = df.groupby('Year Released')['Song'].count().sort_values(ascending=False).reset_index()
@@ -281,7 +284,7 @@ def stats_detail(stat_category):
     else:
         return "Invalid stat category.", 400
 
-    data = data.head(25).to_dict('records')
+    data = data.to_dict('records')  # Remove the head(25) to include all items
 
     return render_template('stats_detail.html', category=stat_category, data=data)
 

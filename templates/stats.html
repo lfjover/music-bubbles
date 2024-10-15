@@ -5,6 +5,10 @@
 <div class="container mt-5">
     <h1 class="mb-4">Statistics</h1>
     
+    <div class="mb-3 text-center">
+    <a href="{{ url_for('home') }}" class="btn btn-secondary mb-4">Back Home</a>
+    </div>
+    
     <div class="row">
         {% for stat, items in stats.items() %}
         <div class="col-md-6 mb-4">
@@ -14,7 +18,7 @@
             <ul class="list-group">
                 {% for item in items %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ loop.index }}. {{ item['Main Artist'] if stat == 'Artists' else item['Country'] if stat == 'Countries' else item['Language'] if stat == 'Languages' else item['Genre'] if stat == 'Genres' else item['Key'] if stat == 'Keys' else item['BPM'] if stat == 'BPMs' else item['BPM Range'] if stat == 'Bpm Ranges' else item['Year Released'] if stat == 'Years Released' else item['Year Range'] }}
+                    {{ loop.index }}. {{ item['Main Artist'] if stat == 'Artists' else item['Country'] if stat == 'Countries' else item['Language'] if stat == 'Languages' else item['Genre'] if stat == 'Genres' else item['Key'] if stat == 'Keys' else item['BPM'] if stat == 'BPMs' else item['BPM Range'] if stat == 'BPM Ranges' else item['Year Released'] if stat == 'Years Released' else item['Year Range'] }}
                     <span class="badge badge-primary badge-pill">{{ item['Song'] }}</span>
                 </li>
                 {% endfor %}
@@ -22,6 +26,11 @@
         </div>
         {% endfor %}
     </div>
+    
+    <div class="mb-3 text-center">
+    <a href="{{ url_for('home') }}" class="btn btn-secondary mb-4">Back Home</a>
+    </div>
+    
 </div>
 {% endblock %}
 

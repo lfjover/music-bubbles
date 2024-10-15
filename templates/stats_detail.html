@@ -5,6 +5,10 @@
 <div class="container mt-5">
     <h1 class="mb-4">Top {{ category }}</h1>
     
+    <div class="mb-3 text-center">
+    <a href="{{ url_for('stats') }}" class="btn btn-secondary">Back to Stats</a>
+    </div>
+    
     <table class="table table-striped" id="stats-table">
         <thead>
             <tr>
@@ -14,13 +18,35 @@
             </tr>
         </thead>
         <tbody>
-           {% for item in data %}
-           <tr data-search="{{ item[category] }}">
-               <td>{{ loop.index }}</td>
-               <td>{{ item[category] }}</td>
-               <td>{{ item['Song'] }}</td>
-           </tr>
-           {% endfor %}
+            {% for item in data %}
+            <tr data-search="{{ item[category] }}">
+                <td>{{ loop.index }}</td>
+                <td>
+                    {% if category == 'Artists' %}
+                        {{ item['Main Artist'] }}
+                    {% elif category == 'Countries' %}
+                        {{ item['Country'] }}
+                    {% elif category == 'Languages' %}
+                        {{ item['Language'] }}
+                    {% elif category == 'Genres' %}
+                        {{ item['Genre'] }}
+                    {% elif category == 'Keys' %}
+                        {{ item['Key'] }}
+                    {% elif category == 'BPMs' %}
+                        {{ item['BPM'] }}
+                    {% elif category == 'BPM Ranges' %}
+                        {{ item['BPM Range'] }}
+                    {% elif category == 'Years Released' %}
+                        {{ item['Year Released'] }}
+                    {% elif category == 'Decades' %}
+                        {{ item['Year Range'] }}
+                    {% else %}
+                        {{ item[category] }}
+                    {% endif %}
+                </td>
+                <td>{{ item['Song'] }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
     
