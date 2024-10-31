@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Response
 import pandas as pd
 from unicodedata import normalize
 from urllib.parse import unquote
@@ -51,10 +51,6 @@ def preprocess_data(df):
     return df
 
 df = preprocess_data(df)
-
-@app.route('/test')
-def test():
-    return 'Flask is working!'
 
 @app.route('/')
 def home():
@@ -298,4 +294,4 @@ def apply_filters(df, filters):
     return filtered_df
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
