@@ -1,8 +1,13 @@
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request, Response, jsonify
 import pandas as pd
 from unicodedata import normalize
 from urllib.parse import unquote
 import html
+from yt_dlp import YoutubeDL
+import librosa
+import tempfile
+import os
+from pydub import AudioSegment
 
 app = Flask(__name__)  # This should be before any route decorators
 
@@ -292,6 +297,105 @@ def apply_filters(df, filters):
         else:
             filtered_df = filtered_df[filtered_df[key].isin(values)]
     return filtered_df
+
+def download_audio_from_youtube(url):
+    """Download audio from YouTube URL"""
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'outtmpl': 'temp_%(id)s.%(ext)s'
+    }
+    
+    with YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(url, download=True)
+            return f"temp_{info['id']}.mp3", info
+        except Exception as e:
+            raise Exception(f"Failed to download: {str(e)}")
+
+def extract_audio_features(audio_path):
+    """Extract audio features using librosa"""
+    try:
+        # Load the audio file
+        y, sr = librosa.load(audio_path)
+        
+        # Extract features
+        # Get tempo (BPM)
+        tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+        
+        # Get key
+        chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
+        key_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        key_idx = chroma.mean(axis=1).argmax()
+        key = key_names[key_idx]
+        
+        # Get duration
+        duration = librosa.get_duration(y=y, sr=sr)
+        minutes = int(duration // 60)
+        seconds = int(duration % 60)
+        duration_str = f"{minutes}:{seconds:02d}"
+        
+        return {
+            'BPM': int(round(tempo)),
+            'Key': key,
+            'Duration': duration_str
+        }
+    except Exception as e:
+        raise Exception(f"Failed to extract features: {str(e)}")
+
+@app.route('/add_youtube', methods=['GET', 'POST'])
+def add_youtube():
+    if request.method == 'POST':
+        try:
+            youtube_url = request.form['youtube_url']
+            artist = request.form['artist']
+            song_title = request.form['song_title']
+            featuring = request.form['featuring']
+            genre = request.form['genre']
+            language = request.form['language']
+            country = request.form['country']
+            year = request.form['year']
+            
+            # Download audio
+            temp_file, video_info = download_audio_from_youtube(youtube_url)
+            
+            # Extract features
+            features = extract_audio_features(temp_file)
+            
+            # Create new song entry
+            new_song = {
+                'Main Artist': artist,
+                'Song': song_title,
+                'Featuring': featuring,
+                'Duration': features['Duration'],
+                'Year Released': int(year),
+                'BPM': features['BPM'],
+                'Key': features['Key'],
+                'Genre': genre,
+                'Language': language,
+                'Country': country
+            }
+            
+            # Add to DataFrame
+            global df
+            df = pd.concat([df, pd.DataFrame([new_song])], ignore_index=True)
+            
+            # Save updated DataFrame
+            df.to_csv('data/songs.csv', index=False)
+            
+            # Clean up temp file
+            os.remove(temp_file)
+            
+            return jsonify({'success': True, 'message': 'Song added successfully'})
+            
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)})
+            
+    return render_template('add_youtube.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
