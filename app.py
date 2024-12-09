@@ -85,11 +85,14 @@ def extract_audio_features(audio_path):
         # Extract features
         # Get tempo (BPM)
         tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+        # Convert tempo to float first, then round to integer
+        tempo_float = float(tempo)
+        bpm = int(round(tempo_float))
         
         # Get key
         chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
         key_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-        key_idx = chroma.mean(axis=1).argmax()
+        key_idx = int(chroma.mean(axis=1).argmax())
         key = key_names[key_idx]
         
         # Get duration
@@ -99,12 +102,13 @@ def extract_audio_features(audio_path):
         duration_str = f"{minutes}:{seconds:02d}"
         
         return {
-            'BPM': int(round(tempo)),
+            'BPM': bpm,
             'Key': key,
             'Duration': duration_str
         }
     except Exception as e:
-        raise Exception(f"Failed to extract features: {str(e)}")
+        print(f"Error in extract_audio_features: {str(e)}")  # Debug logging
+        raise Exception(f"Failed to extract features: {str(e)}Hey")
 
 @app.route('/')
 def home():
