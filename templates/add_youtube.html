@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Add Song from YouTube</h1>
+    
+    <form id="youtube-form" class="needs-validation" novalidate>
+        <div class="form-group">
+            <label for="youtube_url">YouTube URL</label>
+            <input type="url" class="form-control" id="youtube_url" name="youtube_url" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="artist">Main Artist</label>
+            <input type="text" class="form-control" id="artist" name="artist" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="song_title">Song Title</label>
+            <input type="text" class="form-control" id="song_title" name="song_title" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="featuring">Featuring Artists</label>
+            <input type="text" class="form-control" id="featuring" name="featuring">
+            <small class="form-text text-muted">Optional. Separate multiple artists with commas.</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="genre">Genre</label>
+            <input type="text" class="form-control" id="genre" name="genre" required>
+            <small class="form-text text-muted">Separate multiple genres with commas.</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="language">Language</label>
+            <input type="text" class="form-control" id="language" name="language" required>
+            <small class="form-text text-muted">Separate multiple languages with commas.</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="country">Country</label>
+            <input type="text" class="form-control" id="country" name="country" required>
+            <small class="form-text text-muted">Separate multiple countries with commas.</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="year">Year Released</label>
+            <input type="number" class="form-control" id="year" name="year" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Add Song</button>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">Back Home</a>
+    </form>
+    
+    <div id="result-message" class="alert mt-3" style="display: none;"></div>
+</div>
+
+<script>
+document.getElementById('youtube-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const resultDiv = document.getElementById('result-message');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // Disable submit button and show loading state
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Processing...';
+    
+    try {
+        const formData = new FormData(form);
+        const response = await fetch('{{ url_for("add_youtube") }}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            resultDiv.className = 'alert alert-success mt-3';
+            resultDiv.textContent = result.message;
+            form.reset();
+        } else {
+            resultDiv.className = 'alert alert-danger mt-3';
+            resultDiv.textContent = result.error;
+        }
+    } catch (error) {
+        resultDiv.className = 'alert alert-danger mt-3';
+        resultDiv.textContent = 'An error occurred while processing your request.';
+    } finally {
+        resultDiv.style.display = 'block';
+        submitButton.disabled = false;
+        submitButton.innerHTML = 'Add Song';
+    }
+});
+</script>
+

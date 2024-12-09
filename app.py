@@ -57,6 +57,55 @@ def preprocess_data(df):
 
 df = preprocess_data(df)
 
+def download_audio_from_youtube(url):
+    """Download audio from YouTube URL"""
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'outtmpl': 'temp_%(id)s.%(ext)s'
+    }
+    
+    with YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(url, download=True)
+            return f"temp_{info['id']}.mp3", info
+        except Exception as e:
+            raise Exception(f"Failed to download: {str(e)}")
+
+def extract_audio_features(audio_path):
+    """Extract audio features using librosa"""
+    try:
+        # Load the audio file
+        y, sr = librosa.load(audio_path)
+        
+        # Extract features
+        # Get tempo (BPM)
+        tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+        
+        # Get key
+        chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
+        key_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        key_idx = chroma.mean(axis=1).argmax()
+        key = key_names[key_idx]
+        
+        # Get duration
+        duration = librosa.get_duration(y=y, sr=sr)
+        minutes = int(duration // 60)
+        seconds = int(duration % 60)
+        duration_str = f"{minutes}:{seconds:02d}"
+        
+        return {
+            'BPM': int(round(tempo)),
+            'Key': key,
+            'Duration': duration_str
+        }
+    except Exception as e:
+        raise Exception(f"Failed to extract features: {str(e)}")
+
 @app.route('/')
 def home():
     categories = ['Key', 'BPM', 'Genre', 'Language', 'Country', 'Year Released', 'Arrangement', 'Stats']
@@ -297,55 +346,6 @@ def apply_filters(df, filters):
         else:
             filtered_df = filtered_df[filtered_df[key].isin(values)]
     return filtered_df
-
-def download_audio_from_youtube(url):
-    """Download audio from YouTube URL"""
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-        'outtmpl': 'temp_%(id)s.%(ext)s'
-    }
-    
-    with YoutubeDL(ydl_opts) as ydl:
-        try:
-            info = ydl.extract_info(url, download=True)
-            return f"temp_{info['id']}.mp3", info
-        except Exception as e:
-            raise Exception(f"Failed to download: {str(e)}")
-
-def extract_audio_features(audio_path):
-    """Extract audio features using librosa"""
-    try:
-        # Load the audio file
-        y, sr = librosa.load(audio_path)
-        
-        # Extract features
-        # Get tempo (BPM)
-        tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
-        
-        # Get key
-        chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
-        key_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-        key_idx = chroma.mean(axis=1).argmax()
-        key = key_names[key_idx]
-        
-        # Get duration
-        duration = librosa.get_duration(y=y, sr=sr)
-        minutes = int(duration // 60)
-        seconds = int(duration % 60)
-        duration_str = f"{minutes}:{seconds:02d}"
-        
-        return {
-            'BPM': int(round(tempo)),
-            'Key': key,
-            'Duration': duration_str
-        }
-    except Exception as e:
-        raise Exception(f"Failed to extract features: {str(e)}")
 
 @app.route('/add_youtube', methods=['GET', 'POST'])
 def add_youtube():
