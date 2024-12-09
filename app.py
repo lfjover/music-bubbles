@@ -355,49 +355,98 @@ def apply_filters(df, filters):
 def add_youtube():
     if request.method == 'POST':
         try:
-            youtube_url = request.form['youtube_url']
-            artist = request.form['artist']
-            song_title = request.form['song_title']
-            featuring = request.form['featuring']
-            genre = request.form['genre']
-            language = request.form['language']
-            country = request.form['country']
-            year = request.form['year']
-            
+            # Debug print all form data
+            print("Form data received:")
+            for key, value in request.form.items():
+                print(f"{key}: {value}")
+
+            # Get and validate required fields
+            youtube_url = request.form.get('youtube_url', '').strip()
+            artist = request.form.get('artist', '').strip()
+            song_title = request.form.get('song_title', '').strip()
+            genre = request.form.get('genre', '').strip()
+            language = request.form.get('language', '').strip()
+            country = request.form.get('country', '').strip()
+            year_str = request.form.get('year', '').strip()
+            featuring = request.form.get('featuring', '').strip()
+
+            print(f"Year value received: '{year_str}'")  # Debug print
+
+            # Validate required fields
+            if not all([youtube_url, artist, song_title, genre, language, country, year_str]):
+                missing_fields = [field for field, value in {
+                    'YouTube URL': youtube_url,
+                    'Artist': artist,
+                    'Song Title': song_title,
+                    'Genre': genre,
+                    'Language': language,
+                    'Country': country,
+                    'Year': year_str
+                }.items() if not value]
+                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+
+            # Validate year
+            try:
+                if not year_str:
+                    raise ValueError("Year is required")
+                year = int(year_str)
+                if year < 1900 or year > 2024:
+                    raise ValueError("Year must be between 1900 and 2024")
+            except ValueError as e:
+                if "invalid literal for int()" in str(e):
+                    raise ValueError(f"Invalid year format: '{year_str}'. Please enter a valid year.")
+                raise
+
             # Download audio
+            print(f"Downloading audio from: {youtube_url}")
             temp_file, video_info = download_audio_from_youtube(youtube_url)
             
-            # Extract features
-            features = extract_audio_features(temp_file)
-            
-            # Create new song entry
-            new_song = {
-                'Main Artist': artist,
-                'Song': song_title,
-                'Featuring': featuring,
-                'Duration': features['Duration'],
-                'Year Released': int(year),
-                'BPM': features['BPM'],
-                'Key': features['Key'],
-                'Genre': genre,
-                'Language': language,
-                'Country': country
-            }
-            
-            # Add to DataFrame
-            global df
-            df = pd.concat([df, pd.DataFrame([new_song])], ignore_index=True)
-            
-            # Save updated DataFrame
-            df.to_csv('data/songs.csv', index=False)
-            
-            # Clean up temp file
-            os.remove(temp_file)
-            
-            return jsonify({'success': True, 'message': 'Song added successfully'})
+            try:
+                # Extract features
+                print("Extracting audio features...")
+                features = extract_audio_features(temp_file)
+                
+                # Create new song entry
+                new_song = {
+                    'Main Artist': artist,
+                    'Song': song_title,
+                    'Featuring': featuring,
+                    'Duration': features['Duration'],
+                    'Year Released': year,
+                    'BPM': features['BPM'],
+                    'Key': features['Key'],
+                    'Genre': genre,
+                    'Language': language,
+                    'Country': country
+                }
+                
+                print("New song data:", new_song)
+                
+                # Add to DataFrame
+                global df
+                df = pd.concat([df, pd.DataFrame([new_song])], ignore_index=True)
+                
+                # Save updated DataFrame
+                print("Saving to CSV...")
+                df.to_csv('data/songs.csv', index=False)
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Song added successfully'
+                })
+                
+            finally:
+                # Clean up temp file
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+                    print(f"Cleaned up temporary file: {temp_file}")
             
         except Exception as e:
-            return jsonify({'success': False, 'error': str(e)})
+            print(f"Error processing request: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 400
             
     return render_template('add_youtube.html')
 

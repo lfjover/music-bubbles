@@ -4,49 +4,49 @@
 <div class="container mt-5">
     <h1 class="mb-4">Add Song from YouTube</h1>
     
-    <form id="youtube-form" class="needs-validation" novalidate>
-        <div class="form-group">
-            <label for="youtube_url">YouTube URL</label>
+    <form id="youtube-form" method="POST">
+        <div class="form-group mb-3">
+            <label for="youtube_url">YouTube URL*</label>
             <input type="url" class="form-control" id="youtube_url" name="youtube_url" required>
         </div>
         
-        <div class="form-group">
-            <label for="artist">Main Artist</label>
+        <div class="form-group mb-3">
+            <label for="artist">Main Artist*</label>
             <input type="text" class="form-control" id="artist" name="artist" required>
         </div>
         
-        <div class="form-group">
-            <label for="song_title">Song Title</label>
+        <div class="form-group mb-3">
+            <label for="song_title">Song Title*</label>
             <input type="text" class="form-control" id="song_title" name="song_title" required>
         </div>
         
-        <div class="form-group">
+        <div class="form-group mb-3">
             <label for="featuring">Featuring Artists</label>
             <input type="text" class="form-control" id="featuring" name="featuring">
             <small class="form-text text-muted">Optional. Separate multiple artists with commas.</small>
         </div>
         
-        <div class="form-group">
-            <label for="genre">Genre</label>
+        <div class="form-group mb-3">
+            <label for="genre">Genre*</label>
             <input type="text" class="form-control" id="genre" name="genre" required>
             <small class="form-text text-muted">Separate multiple genres with commas.</small>
         </div>
         
-        <div class="form-group">
-            <label for="language">Language</label>
+        <div class="form-group mb-3">
+            <label for="language">Language*</label>
             <input type="text" class="form-control" id="language" name="language" required>
             <small class="form-text text-muted">Separate multiple languages with commas.</small>
         </div>
         
-        <div class="form-group">
-            <label for="country">Country</label>
+        <div class="form-group mb-3">
+            <label for="country">Country*</label>
             <input type="text" class="form-control" id="country" name="country" required>
             <small class="form-text text-muted">Separate multiple countries with commas.</small>
         </div>
         
-        <div class="form-group">
-            <label for="year">Year Released</label>
-            <input type="number" class="form-control" id="year" name="year" required>
+        <div class="form-group mb-3">
+            <label for="year">Year Released*</label>
+            <input type="number" class="form-control" id="year" name="year" required min="1900" max="2024">
         </div>
         
         <button type="submit" class="btn btn-primary">Add Song</button>
@@ -62,6 +62,13 @@
 document.getElementById('youtube-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    // Validate form
+    if (!this.checkValidity()) {
+        e.stopPropagation();
+        this.classList.add('was-validated');
+        return;
+    }
+    
     const form = e.target;
     const resultDiv = document.getElementById('result-message');
     const submitButton = form.querySelector('button[type="submit"]');
@@ -72,6 +79,13 @@ document.getElementById('youtube-form').addEventListener('submit', async functio
     
     try {
         const formData = new FormData(form);
+        
+        // Validate year specifically
+        const year = formData.get('year');
+        if (!year || isNaN(year) || year < 1900 || year > 2024) {
+            throw new Error('Please enter a valid year between 1900 and 2024');
+        }
+        
         const response = await fetch('{{ url_for("add_youtube") }}', {
             method: 'POST',
             body: formData
@@ -85,11 +99,11 @@ document.getElementById('youtube-form').addEventListener('submit', async functio
             form.reset();
         } else {
             resultDiv.className = 'alert alert-danger mt-3';
-            resultDiv.textContent = result.error;
+            resultDiv.textContent = result.error || 'An error occurred';
         }
     } catch (error) {
         resultDiv.className = 'alert alert-danger mt-3';
-        resultDiv.textContent = 'An error occurred while processing your request.';
+        resultDiv.textContent = error.message || 'An error occurred while processing your request';
     } finally {
         resultDiv.style.display = 'block';
         submitButton.disabled = false;
