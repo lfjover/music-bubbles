@@ -450,5 +450,31 @@ def add_youtube():
             
     return render_template('add_youtube.html')
 
+def parse_video_title(title):
+    """Try to extract artist and song name from video title"""
+    # Common separators in video titles
+    separators = [' - ', ' | ', ' – ', ' − ', ' — ']
+    
+    # Remove common suffixes
+    suffixes = ['(Official Video)', '(Official Music Video)', '(Lyrics)', '(Audio)', '[Official Video]']
+    clean_title = title
+    for suffix in suffixes:
+        clean_title = clean_title.replace(suffix, '').strip()
+    
+    # Try to split by common separators
+    for separator in separators:
+        if separator in clean_title:
+            parts = clean_title.split(separator, 1)
+            return {
+                'artist': parts[0].strip(),
+                'song_title': parts[1].strip()
+            }
+    
+    # If no separator found, return just the title
+    return {
+        'artist': '',
+        'song_title': clean_title
+    }
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
